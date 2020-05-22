@@ -57,11 +57,11 @@
               "vendorChunk": false,
               "buildOptimizer": true
             },
-            "europa": {
+            "europe": {
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.europa.ts"
+                  "with": "src/environments/environment.europe.ts"
                 }
               ],
               "optimization": true,
@@ -88,8 +88,8 @@
             "jungle": {
               "browserTarget": "roshambo-EOS-frontend:build:jungle"
             },
-            "europa": {
-              "browserTarget": "roshambo-EOS-frontend:build:europa"
+            "europe": {
+              "browserTarget": "roshambo-EOS-frontend:build:europe"
             }
           }
         },
@@ -137,8 +137,8 @@
             "jungle": {
               "devServerTarget": "roshambo-EOS-frontend:serve:jungle"
             },
-            "europa": {
-              "devServerTarget": "roshambo-EOS-frontend:serve:europa"
+            "europe": {
+              "devServerTarget": "roshambo-EOS-frontend:serve:europe"
             }
           }
         },
