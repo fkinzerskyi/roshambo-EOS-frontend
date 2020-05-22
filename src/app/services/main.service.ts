@@ -4,6 +4,8 @@ import Eos from "eosjs";
 import EosJSecc from "eosjs-ecc";
 import ScatterJS from "scatterjs-core";
 import ScatterEOS from "scatterjs-plugin-eosjs";
+import { Router } from "@angular/router";
+import { LoginEOSService } from "eos-ulm";
 
 @Injectable({
   providedIn: "root",
@@ -23,79 +25,11 @@ export class MainService {
   // scatterJS;
   // ScatterEOS;
 
-  constructor() {
+  constructor(private router: Router, public loginEOSService: LoginEOSService) {
     // this.eos = Eos(environment.Eos);
     // this.scatterJS = ScatterJS.plugins(new ScatterEOS());
     this.ScatterJS.plugins(new ScatterEOS());
     // this.WINDOW.ScatterJS.plugins(new this.WINDOW.ScatterEOS());
-  }
-
-  returnEosNet() {
-    return this.eos;
-  }
-
-  initScatter(callback) {
-    this.ScatterJS.scatter
-      .connect("roshambo")
-      .then((connected) => {
-        if (!connected) {
-          return this.showScatterError("Can't connect to Scatter", callback);
-        }
-        // this.ScatterJS = ScatterJS.scatter;
-        // this.ScatterJS = null;
-        this.eos = this.ScatterJS.eos(
-          environment.network,
-          Eos,
-          { chainId: environment.network.chainId },
-          environment.network.protocol
-        );
-
-        this.ScatterJS.getIdentity({ accounts: [environment.network] })
-          .then((identity) => {
-            if (identity.accounts.length === 0) {
-              return;
-            }
-            let objectIdentity;
-            if (this.ScatterJS.identity && this.ScatterJS.identity.accounts) {
-              objectIdentity = this.ScatterJS.identity.accounts.find(
-                (x) => x.blockchain === "eos"
-              );
-            }
-            objectIdentity = { name: identity.accounts[0].name };
-            this.accountName = objectIdentity.name;
-            localStorage.setItem("user", "connected");
-            callback(null, this.accountName);
-          })
-          .catch((error) => this.showScatterError(error, callback));
-      })
-      .catch((error) => {
-        this.showScatterError(error, callback);
-      });
-  }
-
-  showScatterError(error, callback) {
-    if (!error) return;
-    let msg = error.message;
-
-    if (error.type == "account_missing" && error.code == 402) {
-      msg =
-        "Missing required accounts, repull the identity. Choose account the same as added in Scatter.";
-    } else if (error.type == "identity_rejected" && error.code == 402) {
-      msg = "Please accept Identity request";
-    } else if (error.type == "locked" && error.code == 423) {
-      msg = "Your Scatter wallet is locked";
-    } else if (error.type == "signature_rejected" && error.code == 402) {
-      msg = "Voting Transaction canceled (you rejected signature request)";
-    } else if (error.code == 500) {
-      msg = "You can't close game in the middle";
-    }
-    this.WINDOW.UIkit.notification({
-      message: msg,
-      status: "danger",
-      pos: "top-center",
-      timeout: 3000,
-    });
-    callback(error);
   }
 
   showErr(error) {
@@ -113,20 +47,17 @@ export class MainService {
     });
   }
 
-  logout() {
-    localStorage.setItem("user", "disconnect");
-    this.WINDOW.ScatterJS.scatter
-      .forgetIdentity()
-      .then(() => {
-        location.href = "/";
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-
   createGame(challenger) {
-    if (challenger === this.accountName) {
+    if (!challenger || challenger.length !== 12) {
+      this.WINDOW.UIkit.notification({
+        message: "Incorrect EOS account",
+        status: "danger",
+        pos: "top-center",
+        timeout: 3000,
+      });
+      return;
+    }
+    if (challenger === this.loginEOSService.accountName) {
       this.WINDOW.UIkit.notification({
         message: "Account can't be the same",
         status: "danger",
@@ -146,23 +77,58 @@ export class MainService {
     }
     this.setPlayer(challenger);
 
-    this.eos
-      .contract(environment.gcontract)
-      .then((contract) => {
-        contract
-          .create(this.accountName, challenger, {
-            authorization: [this.accountName],
-          })
-          .then((res) => {
-            //location.href = "/mygame/" + this.accountName;
-            this.findGame(challenger);
-          })
-          .catch((error) => {
-            this.showErr(error);
-          });
+    let actions = [
+      {
+        account: environment.gcontract,
+        name: "create",
+        authorization: [
+          {
+            actor: this.loginEOSService.accountName,
+            permission: "active",
+          },
+        ],
+        data: {
+          host: this.loginEOSService.accountName,
+          challenger,
+        },
+      },
+    ];
+    this.loginEOSService.eos
+      .transaction({ actions })
+      .then((res) => {
+        try {
+          this.findGame(challenger);
+        } catch (err) {
+          this.loginEOSService.contractError(err);
+        }
       })
-      .catch((error) => {
-        this.showErr(error);
+      .catch((err) => {
+        let errorObj;
+        try {
+          errorObj = JSON.parse(err);
+        } catch (err) {
+          this.loginEOSService.showMessage(err);
+          return;
+        }
+        const erroeMsg = errorObj.error.details[0].message;
+        const userExist = "There is open game with this user";
+        if (erroeMsg.includes(userExist)) {
+          for (let game of this.GAMES_C) {
+            if (game.host === challenger) {
+              let url = `/call/${game.host}/${game.id}`;
+              this.router.navigate([url]);
+              return null;
+            }
+          }
+          for (let game of this.GAMES_M) {
+            if (game.challenger === challenger) {
+              let url = `/mygame/${game.challenger}/${game.id}`;
+              this.router.navigate([url]);
+              return null;
+            }
+          }
+        }
+        this.loginEOSService.contractError(err);
       });
   }
 
@@ -170,8 +136,9 @@ export class MainService {
     let found = false;
     this.GAMES_M.forEach((elem) => {
       if (elem.challenger === challenger) {
-        location.href = `/mygame/${challenger}/${elem.id}`;
         found = true;
+        let url = `/mygame/${challenger}/${elem.id}`;
+        this.router.navigate([url]);
       }
     });
     if (!found) {
@@ -182,7 +149,7 @@ export class MainService {
   }
 
   getGameChallenges(callback) {
-    if (!this.accountName) {
+    if (!this.loginEOSService.accountName) {
       return;
     }
     this.eos
@@ -193,8 +160,8 @@ export class MainService {
         table: "games",
         limit: 100,
         table_key: "host",
-        lower_bound: this.accountName,
-        upper_bound: this.accountName + "a",
+        lower_bound: this.loginEOSService.accountName,
+        upper_bound: this.loginEOSService.accountName + "a",
         key_type: "i64",
         index_position: 2,
       })
@@ -208,7 +175,7 @@ export class MainService {
   }
 
   getMyGamesCalls(callback) {
-    if (!this.accountName) {
+    if (!this.loginEOSService.accountName) {
       return;
     }
     this.eos
@@ -219,8 +186,8 @@ export class MainService {
         table: "games",
         limit: 100,
         table_key: "challenger",
-        lower_bound: this.accountName,
-        upper_bound: this.accountName + "a",
+        lower_bound: this.loginEOSService.accountName,
+        upper_bound: this.loginEOSService.accountName + "a",
         key_type: "i64",
         index_position: 3,
       })
@@ -234,44 +201,66 @@ export class MainService {
   }
 
   closeGame(id) {
-    this.eos
-      .contract(environment.gcontract)
-      .then((contract) => {
-        contract
-          .close(this.accountName, id, { authorization: [this.accountName] })
-          .then((res) => {
-            location.href = "/";
-          })
-          .catch((error: any) => {
-            this.showErr(error);
-          });
+    let actions = [
+      {
+        account: environment.gcontract,
+        name: "close",
+        authorization: [
+          {
+            actor: this.loginEOSService.accountName,
+            permission: "active",
+          },
+        ],
+        data: {
+          host: this.loginEOSService.accountName,
+          id,
+        },
+      },
+    ];
+    this.loginEOSService.eos
+      .transaction({ actions })
+      .then((res) => {
+        this.router.navigate(["/"]);
       })
-      .catch((error) => {
-        this.showErr(error);
+      .catch((err) => {
+        this.loginEOSService.contractError(err);
       });
   }
   restart(id, challenger) {
-    this.eos
-      .contract(environment.gcontract)
-      .then((contract) => {
-        contract
-          .restart(this.accountName, id, { authorization: [this.accountName] })
-          .then((res) => {
-            //location.reload();
-            this.GAMES_M = [];
-            this.findGame(challenger);
-          })
-          .catch((error) => {
-            this.showErr(error);
-          });
+    let actions = [
+      {
+        account: environment.gcontract,
+        name: "restart",
+        authorization: [
+          {
+            actor: this.loginEOSService.accountName,
+            permission: "active",
+          },
+        ],
+        data: {
+          host: this.loginEOSService.accountName,
+          id,
+        },
+      },
+    ];
+    this.loginEOSService.eos
+      .transaction({ actions })
+      .then((res) => {
+        try {
+          this.GAMES_M = [];
+          this.findGame(challenger);
+        } catch (err) {
+          this.loginEOSService.contractError(err);
+        }
       })
-      .catch((error) => {
-        this.showErr(error);
+      .catch((err) => {
+        console.error(err);
+        this.loginEOSService.contractError(err);
       });
   }
 
   move01(id, move_, challenger, by) {
-    let host = this.accountName;
+    let host = this.loginEOSService.accountName;
     this.move[host] = move_;
     this.nonce[host] = Math.floor(Math.random() * 100000000 + 1);
 
@@ -282,26 +271,33 @@ export class MainService {
     let move_hash = EosJSecc.sha256(my_move);
     let by_name = by === 1 ? host : challenger;
 
-    this.eos
-      .contract(environment.gcontract)
-      .then((contract) => {
-        contract
-          .move1(id, by_name, move_hash, { authorization: [this.accountName] })
-          .then((res) => {
-            //getMyGames();
-            //updateGameView();
-          })
-          .catch((error) => {
-            this.showErr(error);
-          });
-      })
-      .catch((error) => {
-        this.showErr(error);
+    let actions = [
+      {
+        account: environment.gcontract,
+        name: "move1",
+        authorization: [
+          {
+            actor: this.loginEOSService.accountName,
+            permission: "active",
+          },
+        ],
+        data: {
+          id,
+          by: by_name,
+          move_hash,
+        },
+      },
+    ];
+    this.loginEOSService.eos
+      .transaction({ actions })
+      .then((res) => {})
+      .catch((err) => {
+        this.loginEOSService.contractError(err);
       });
   }
 
   move02(id, challenger, by) {
-    let host = this.accountName;
+    let host = this.loginEOSService.accountName;
     let by_name = by === 1 ? host : challenger;
 
     if (!this.nonce[host]) {
@@ -311,26 +307,35 @@ export class MainService {
       this.move[host] = Number(this.getGame(`rps_${id}_move`));
     }
 
-    console.log(this.nonce, this.move);
-
-    this.eos
-      .contract(environment.gcontract)
-      .then((contract) => {
-        contract
-          .move2(id, by_name, this.move[host], this.nonce[host], {
-            authorization: [this.accountName],
-          })
-          .then((res) => {
-            //getMyGames();
-            //updateGameView();
-            this.clearCachedGames(id);
-          })
-          .catch((error) => {
-            this.showErr(error);
-          });
+    let actions = [
+      {
+        account: environment.gcontract,
+        name: "move2",
+        authorization: [
+          {
+            actor: this.loginEOSService.accountName,
+            permission: "active",
+          },
+        ],
+        data: {
+          id,
+          by: by_name,
+          pmove: this.move[host],
+          pmove_nonce: this.nonce[host],
+        },
+      },
+    ];
+    this.loginEOSService.eos
+      .transaction({ actions })
+      .then((res) => {
+        try {
+          this.clearCachedGames(id);
+        } catch (err) {
+          this.loginEOSService.contractError(err);
+        }
       })
-      .catch((error) => {
-        this.showErr(error);
+      .catch((err) => {
+        this.loginEOSService.contractError(err);
       });
   }
 

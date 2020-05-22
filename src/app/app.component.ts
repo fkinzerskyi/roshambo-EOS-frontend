@@ -7,6 +7,9 @@ import { environment } from "../environments/environment";
 import * as moment from "moment";
 
 import { forkJoin } from "rxjs";
+import { take } from "rxjs/operators";
+import { LoginEOSService } from "eos-ulm";
+import ScatterJS from "scatterjs-core";
 
 @Component({
   selector: "app-root",
@@ -14,15 +17,18 @@ import { forkJoin } from "rxjs";
   styleUrls: ["./app.component.css"],
 })
 export class AppComponent implements OnInit {
-  constructor(private MainService: MainService, private http: HttpClient) {
+  constructor(
+    private MainService: MainService,
+    private http: HttpClient,
+    public loginEOSService: LoginEOSService
+  ) {
     this.MainService.setPlayer(environment.botName);
   }
 
   WINDOW: any = window;
-  connected = localStorage.getItem("user") === "connected" ? true : false;
+  connected: boolean;
   userName;
-  logout = this.MainService.logout;
-  eos = this.MainService.returnEosNet();
+  // eos = this.MainService.returnEosNet();
   gamesPlayed;
   timeUpdate = 60000;
   GAMES_M = [];
@@ -30,15 +36,18 @@ export class AppComponent implements OnInit {
   moment = moment;
   version = environment.version;
   configStyle = environment.style;
-
-  initScatter() {
-    this.MainService.initScatter((err, account) => {
-      if (err) {
-        return console.error(err);
-      }
-      this.userName = account;
-    });
+  logout() {
+    this.loginEOSService.logout();
   }
+
+  // initScatter() {
+  //   this.MainService.initScatter((err, account) => {
+  //     if (err) {
+  //       return console.error(err);
+  //     }
+  //     this.userName = account;
+  //   });
+  // }
 
   createGamesTable() {
     this.http.get("/api/v1/games/log").subscribe(
@@ -80,14 +89,20 @@ export class AppComponent implements OnInit {
     setInterval(() => {
       this.createNavDropdowns();
     }, 1000);
-    if (this.connected) {
-      if (!this.WINDOW.ScatterJS) {
-        document.addEventListener("scatterLoaded", () => {
-          this.initScatter();
-        });
-      } else {
-        this.initScatter();
-      }
-    }
+    // if (this.connected) {
+    //   if (!this.WINDOW.ScatterJS) {
+    //     document.addEventListener("scatterLoaded", () => {
+    //       this.initScatter();
+    //     });
+    //   } else {
+    //     this.initScatter();
+    //   }
+    // }
+    this.loginEOSService.loggedIn.subscribe(() => {
+      this.MainService.accountName = this.loginEOSService.accountName;
+      this.userName = this.loginEOSService.accountName;
+      this.connected =
+        localStorage.getItem("walletConnected") === "connected" ? true : false;
+    });
   }
 }

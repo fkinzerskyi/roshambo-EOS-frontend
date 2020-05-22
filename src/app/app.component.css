@@ -1,5 +1,21 @@
-.bottom-footer{
-	position: fixed;
-	bottom: 10px;
-	left: 0;
+.bottom-footer {
+  position: fixed;
+  bottom: 10px;
+  left: 0;
+}
+
+.games-header-text,
+.challenges-header-text {
+  color: #666;
+  cursor: default;
+  text-transform: capitalize;
+}
+
+.games-header-text {
+  margin-bottom: 10px;
+}
+
+.challenges-header-text {
+  margin-top: 15px;
+  margin-bottom: 10px;
 }

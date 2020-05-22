@@ -285,7 +285,11 @@
   type="button"
   (click)="closeGame()"
   id="btn_cancel"
-  *ngIf="!tableLoader && game?.pc_move && game?.ph_move"
+  *ngIf="
+    (!tableLoader && game?.pc_move && game?.ph_move) ||
+    longWait ||
+    opponentWaiting
+  "
 >
   Close Game
 </button>
