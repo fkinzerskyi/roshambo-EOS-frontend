@@ -34,10 +34,10 @@ export class AppComponent implements OnInit {
   version = environment.version;
   configStyle = environment.style;
 
-  // @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
-  //   this.logout();
-  //   localStorage.clear();
-  // }
+  @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
+    localStorage.clear();
+    this.logout();
+  }
 
   logout() {
     this.loginEOSService.logout();
