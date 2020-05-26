@@ -128,7 +128,13 @@ export class MainService {
             }
           }
         }
-        this.loginEOSService.contractError(err);
+
+        this.WINDOW.UIkit.notification({
+          message: "There is open game!",
+          status: "danger",
+          pos: "top-center",
+          timeout: 3000,
+        });
       });
   }
 

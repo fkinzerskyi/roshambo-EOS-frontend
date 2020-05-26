@@ -23,14 +23,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     ? localStorage.getItem("players").split(",")
     : [];
   config = environment;
+  placeholder = "";
 
   initScatter() {
-    // this.MainService.initScatter((err, account) => {
-    //   if (err) {
-    //     return console.error(err);
-    //   }
-    //   location.reload();
-    // });
     this.loginEOSService.openPopup();
   }
 
@@ -43,5 +38,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.connected =
       localStorage.getItem("user") === "connected" ? true : false;
+
+    this.placeholder = `Enter ${this.config.coinName} account you'd like to challenge`;
   }
 }

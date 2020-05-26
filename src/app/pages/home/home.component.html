@@ -35,9 +35,10 @@
 
 <div *ngIf="loginEOSService.connected">
   <div class="uk-margin-medium uk-text-lead">
-    Please enter oponents <strong class="color-white">EOS</strong> account name
-    and <br />
-    press create the <strong class="color-white">game</strong>. Its totaly
+    Please enter oponents
+    <strong class="color-white">{{ config.coinName }}</strong> account name and
+    <br />
+    press <strong class="color-white">create</strong>. Its totaly
     <strong class="color-white">free</strong>
   </div>
   <div
@@ -47,7 +48,7 @@
   >
     <small>Recent players: </small>
     <div
-      class="uk-label"
+      class="uk-label recetn-player"
       [ngStyle]="config.style.ukLabel"
       *ngFor="let player of recentPlayers"
       (click)="createGame(player)"
@@ -62,7 +63,7 @@
         class="uk-input"
         id="inp_create_game_challenger"
         type="text"
-        placeholder="Enter EOS account you'd like cause for a fight"
+        placeholder="{{ placeholder }}"
         [(ngModel)]="challenger"
       />
     </div>

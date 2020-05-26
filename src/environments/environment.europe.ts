@@ -3,6 +3,8 @@ const chain =
 export const environment = {
   production: true,
   gcontract: "roshambogame",
+  appName: "roshambo-EOS-frontend-europechain",
+  coinName: "XEC",
   network: {
     blockchain: "eos",
     host: "api.xec.cryptolions.io",

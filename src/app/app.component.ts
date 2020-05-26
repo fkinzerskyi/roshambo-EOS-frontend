@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, HostListener } from "@angular/core";
 import { MainService } from "./services/main.service";
 import { HttpClient } from "@angular/common/http";
 
@@ -6,10 +6,7 @@ import { environment } from "../environments/environment";
 
 import * as moment from "moment";
 
-import { forkJoin } from "rxjs";
-import { take } from "rxjs/operators";
 import { LoginEOSService } from "eos-ulm";
-import ScatterJS from "scatterjs-core";
 
 @Component({
   selector: "app-root",
@@ -36,18 +33,15 @@ export class AppComponent implements OnInit {
   moment = moment;
   version = environment.version;
   configStyle = environment.style;
+
+  // @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
+  //   this.logout();
+  //   localStorage.clear();
+  // }
+
   logout() {
     this.loginEOSService.logout();
   }
-
-  // initScatter() {
-  //   this.MainService.initScatter((err, account) => {
-  //     if (err) {
-  //       return console.error(err);
-  //     }
-  //     this.userName = account;
-  //   });
-  // }
 
   createGamesTable() {
     this.http.get("/api/v1/games/log").subscribe(
@@ -89,15 +83,7 @@ export class AppComponent implements OnInit {
     setInterval(() => {
       this.createNavDropdowns();
     }, 1000);
-    // if (this.connected) {
-    //   if (!this.WINDOW.ScatterJS) {
-    //     document.addEventListener("scatterLoaded", () => {
-    //       this.initScatter();
-    //     });
-    //   } else {
-    //     this.initScatter();
-    //   }
-    // }
+
     this.loginEOSService.loggedIn.subscribe(() => {
       this.MainService.accountName = this.loginEOSService.accountName;
       this.userName = this.loginEOSService.accountName;

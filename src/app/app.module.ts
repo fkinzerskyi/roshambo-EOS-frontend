@@ -31,7 +31,7 @@ import { environment } from "../environments/environment";
     FormsModule,
     HttpClientModule,
     LoginEOSModule.forRoot({
-      appName: "roshambo-EOS-frontend",
+      appName: environment.appName,
       httpEndpoint: environment.Eos.httpEndpoint,
       chain: environment.chain,
       verbose: environment.Eos.verbose,
