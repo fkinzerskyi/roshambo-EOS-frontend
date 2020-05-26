@@ -5,6 +5,7 @@ export const environment = {
   gcontract: "roshambogame",
   appName: "roshambo-EOS-frontend-jungle",
   coinName: "EOS",
+  cryptolionsLink: "http://cryptolions.io/",
   network: {
     blockchain: "eos",
     host: "jungle2.cryptolions.io",

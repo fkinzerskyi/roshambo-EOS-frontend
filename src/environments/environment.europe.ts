@@ -5,6 +5,8 @@ export const environment = {
   gcontract: "roshambogame",
   appName: "roshambo-EOS-frontend-europechain",
   coinName: "XEC",
+  cryptolionsLink: "http://cryptolions.io/",
+  euoprechainLink: "https://europechain.io/",
   network: {
     blockchain: "eos",
     host: "api.xec.cryptolions.io",

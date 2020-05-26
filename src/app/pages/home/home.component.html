@@ -13,9 +13,21 @@
   <p class="uk-margin-medium uk-text-lead">
     Welcome to
     <strong class="color-white">roshambo</strong> game created by
-    <strong class="color-white">Cryptolions</strong> team
+    <a href="{{ config.cryptolionsLink }}" target="_blank" class="home-link"
+      ><strong class="color-white">Cryptolions</strong></a
+    >
+    team
     <br class="uk-visible@s" />
-    and powered on <strong class="color-white">EOS</strong> blockchain.
+    <ng-container *ngIf="config.appName === 'roshambo-EOS-frontend-jungle'"
+      >and powered on
+      <strong class="color-white">EOS</strong> blockchain.</ng-container
+    >
+    <ng-container *ngIf="config.appName === 'roshambo-EOS-frontend-europechain'"
+      >and powered by
+      <a href="{{ config.euoprechainLink }}" target="_blank" class="home-link"
+        ><strong class="color-white">Euoprechain</strong></a
+      >.</ng-container
+    >
   </p>
   <div
     uk-grid=""
@@ -35,11 +47,8 @@
 
 <div *ngIf="loginEOSService.connected">
   <div class="uk-margin-medium uk-text-lead">
-    Please enter oponents
-    <strong class="color-white">{{ config.coinName }}</strong> account name and
-    <br />
-    press <strong class="color-white">create</strong>. Its totaly
-    <strong class="color-white">free</strong>
+    Please enter oponent's account name and press
+    <strong class="color-white">create</strong>.
   </div>
   <div
     class="uk-inline container-input"

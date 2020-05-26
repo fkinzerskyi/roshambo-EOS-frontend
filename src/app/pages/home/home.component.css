@@ -7,6 +7,10 @@
   transform: scale(1.05);
 }
 
+.home-link:hover {
+  text-decoration: none;
+}
+
 @keyframes slide {
   0% {
     transform: scale(1);
