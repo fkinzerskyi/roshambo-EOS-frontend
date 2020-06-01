@@ -99,7 +99,7 @@
       id="winnerh_{{ host }}"
       *ngIf="game?.winner !== 'none' && game?.winner === host"
     >
-      YOU WINN
+      YOU WIN
     </h1>
     <h1
       class="looser"
@@ -253,12 +253,12 @@
       </span>
     </div>
     <i class="fas fa-user-astronaut user-circle-icon"></i>
-    <h1
+    <!-- <h1
       class="winner"
       id="winnerc_{{ host }}"
       *ngIf="game?.winner !== 'none' && game?.winner === game?.challenger"
     >
-      YOU WINN
+      YOU WIN
     </h1>
     <h1
       class="looser"
@@ -270,7 +270,7 @@
       "
     >
       YOU LOSE
-    </h1>
+    </h1> -->
   </div>
   <div class="col-sm-12">
     <h1 *ngIf="game?.winner === 'none' && game?.pc_move && game?.ph_move">
