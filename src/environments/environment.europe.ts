@@ -6,7 +6,7 @@ export const environment = {
   appName: "roshambo-EOS-frontend-europechain",
   coinName: "XEC",
   cryptolionsLink: "http://cryptolions.io/",
-  euoprechainLink: "https://europechain.io/",
+  europechainLink: "https://europechain.io/",
   network: {
     blockchain: "eos",
     host: "api.xec.cryptolions.io",
