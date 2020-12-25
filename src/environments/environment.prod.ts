@@ -8,7 +8,7 @@ export const environment = {
   cryptolionsLink: "http://cryptolions.io/",
   network: {
     blockchain: "eos",
-    host: "bp.cryptolions.io",
+    host: "intapi.eos.cryptolions.io",
     port: 443,
     protocol: "https",
     expireInSeconds: 120,
@@ -16,7 +16,7 @@ export const environment = {
   },
   chain: chain,
   Eos: {
-    httpEndpoint: "https://bp.cryptolions.io",
+    httpEndpoint: "https://intapi.eos.cryptolions.io",
     chainId: chain,
     verbose: false,
   },
